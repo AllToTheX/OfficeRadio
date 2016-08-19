@@ -10,30 +10,41 @@ import sys
 import spotipy
 import spotipy.util as util
 
+class OfficeRadio(object):
+    
+    def __init__(self,username):
+        scope = 'playlist-modify-public'
+        self.username=username
+        self.token = util.prompt_for_user_token(username, scope)
+        self.sp = spotipy.Spotify(auth=self.token)
 
-def add_song(username,playlist_id,track_ids,sp):
 
-    sp.trace = False
-    sp.user_playlist_add_tracks(username, playlist_id, track_ids)
-    print("Track Added")
+    def add_song(self, playlist_id, track_ids):
+    
+        self.sp.trace = False
+        self.sp.user_playlist_add_tracks(self.username, playlist_id, track_ids)
+        print("Track Added")
 
         
-def get_playlist_id(username,playlist_name,sp):
+    def get_playlist(self, playlist_name):
+    
+        playlists = self.sp.user_playlists(self.username)
+        playlist = [playlist for playlist in playlists['items'] if playlist['name'] == playlist_name][0]
+        playlist = self.sp.user_playlist(self.username, playlist['id'], fields="tracks,next")
+        return playlist
 
-    playlists = sp.user_playlists(username)
-    playlist = [playlist for playlist in playlists['items'] if playlist['name'] == playlist_name][0]
-    playlist_id = playlist['id']
-    return playlist_id
 
-
-def get_song_id(song,sp):
-
-    results = sp.search(q=song, limit=20)
-    for i, song in enumerate(results['tracks']['items']):
-        print("[%d] : %s - %s" %(i,song['artists'][0]['name'],song['name']))
-    choice = int(raw_input("Select track: "))
-    return(results['tracks']['items'][choice]['id'])
-
+    def get_song_id(self, song):
+    
+        results = self.sp.search(q=song, limit=20)
+        for i, song in enumerate(results['tracks']['items']):
+            print("[%d] : %s - %s" %(i,song['artists'][0]['name'],song['name']))
+        choice = int(raw_input("Select track: "))
+        return(results['tracks']['items'][choice]['id'])
+    
+    def search_song(self, song):
+        return self.sp.search(q=song, limit=20)['tracks']['items']
+        
 
 def main():
     if len(sys.argv) > 1:
@@ -43,18 +54,22 @@ def main():
         print("usage: python user_playlists.py [username]")
         sys.exit()
     
+    office = OfficeRadio(username)
+    
     song = raw_input("Search: ")
     playlist_name = 'OfficeRadio'
     
+    song = office.search_song(song)
+    pl = office.get_playlist(playlist_name)
+    track_add_timestamp = pl['tracks']['items'][0]['added_at']
+    print track_add_timestamp
+#     pprint(pl['tracks']['items'][0])
+    exit()
     
-    scope = 'playlist-modify-public'
-    token = util.prompt_for_user_token(username, scope)
-    sp = spotipy.Spotify(auth=token)
-    
-    playlist_id = get_playlist_id(username,playlist_name,sp)
+    playlist = office.get_playlist( playlist_name )    
     song_ids = list()
-    song_ids.append(get_song_id(song,sp))
-    add_song(username, playlist_id, song_ids, sp)
+    song_ids.append( office.get_song_id(song) )
+    office.add_song( playlist['id'], song_ids )
     
 
 if __name__ == '__main__':

@@ -1,0 +1,11 @@
+$def with (song, results, choice)
+
+$if song and choice is None:
+    Search for: $song. <br>
+    $for i, song in enumerate(results):
+            [$i] : $song['artists'][0]['name'] - $song['name']<br>
+$elif song:
+	Added <em>$choice</em> to the playlist<br>
+$else:
+    <em>Hello</em>, world! <br>
+    
