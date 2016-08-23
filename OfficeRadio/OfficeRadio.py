@@ -15,7 +15,11 @@ class OfficeRadio(object):
     def __init__(self,username):
         scope = 'playlist-modify-public'
         self.username=username
-        self.token = util.prompt_for_user_token(username, scope)
+        self.token = util.prompt_for_user_token(username,
+                                                scope=scope,
+                                                client_id='e6efe472d4944103b3703d8c62cd27c8',
+                                                client_secret='295c5e4967f4497c997206a86eaa89fa',
+                                                redirect_uri='http://localhost/callback/')
         self.sp = spotipy.Spotify(auth=self.token)
 
 
